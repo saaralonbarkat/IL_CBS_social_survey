@@ -3,7 +3,7 @@
     "path": "~/GitHub/IL_CBS_social_survey/reports/report_IL_CSC_social_survey.qmd",
     "project_path": "reports/report_IL_CSC_social_survey.qmd",
     "type": "quarto_markdown",
-    "hash": "3313439552",
+    "hash": "1869903875",
     "contents": "",
     "dirty": false,
     "created": 1663053506663.0,
@@ -15,19 +15,19 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "11,0",
-        "scrollLine": "0",
+        "cursorPosition": "161,0",
+        "scrollLine": "134",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
         "rmdVisualModeLocation": "2:0",
-        "last_setup_crc32": "CCB52D6E650370f4"
+        "last_setup_crc32": "5C5167D7825cdc86"
     },
     "folds": "",
-    "lastKnownWriteTime": 1663062079,
+    "lastKnownWriteTime": 1663064127,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1663062079559,
+    "last_content_update": 1663064127917,
     "read_only": false,
     "read_only_alternatives": []
 }

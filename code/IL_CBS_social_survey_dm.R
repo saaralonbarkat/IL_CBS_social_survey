@@ -228,9 +228,9 @@ lss_comb <-  bind_rows(
            arab==1 & religion==3 ~ "Arab Christian",
            religion==4 ~ "Arab Druz",
            arab==1 & religion==2 & residence_type!=1~ "Arab Muslim",
-           arab==1 & residence_type==1 ~ "Arab East Jerusalem",
+           arab==1 & residence_type==1 ~ "Arab Jerusalem",
            ultra_orthodox==1 ~ "Jewish Ultra-orthodox",
-           russian_ole==1 ~ "Jewish russian origin",
+           russian_ole==1 ~ "Jewish USSR born",
            mizrahi_origin==1 & ultra_orthodox==0~ "Jewish Mizrahi origin",
            arab==0 & mizrahi_origin==0 & ultra_orthodox==0 ~ "Jewish Ashkenazi",
            TRUE ~ "Other")) %>% 

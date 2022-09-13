@@ -31,7 +31,7 @@ library(gt)
 library(gtsummary)
 ```
 
-
+<br>
 
 
 
@@ -55,7 +55,7 @@ Statistical note: analyses represent weighted data, unless states otherwise.
 
 
 
-
+<br>
 
 
 
@@ -134,12 +134,44 @@ lss_comb %>%
 ```
 
 
-## Key variables: 
+<br>
+
+## Sectors
+
+
+Categorization of sectors:
+
+
+* Arab christian
+
+* Arab Druz
+
+* Arab Jerusalem (belongs to Arab population and residing in Jerusalem)
+
+* Arab Muslim
+
+* Jewish Ultra-orthodox (based on self reporting of level of religiousity among Jews)
+
+* Jewish USSR born
+
+* Jewish Mizrahi origin (either born in Asia/Africa or mother/father born in Asia/Africa)
+
+* Jewish Ashkenazi (Jewish, residual category)
+
+* Other (non Jewish residual category)
+
+
+(see R code)
+
+
+
+
+## Attitudinal/trust variables: 
 
 
 **Trust in Government **
 
-original item:
+original item (`EmunMemshala`):
 
 עד כמה אתה נותן אמון במוסדות הבאים - הממשלה :
 
@@ -162,7 +194,7 @@ No trust at all or not so much= 0
 
 **Trust in healthcare system **
 
-original item:
+original item  (`EmunBriut`):
 
 האם את/ה נותן/נותנת אמון במערכת הבריאות?
 
@@ -185,7 +217,7 @@ No trust at all or not so much= 0
 
 **Performance evaluation of healthcare system**
 
-original item:
+original item (`TifkudBriut`):
 
 מה דעתך על תפקוד מערכת הבריאות?  
 
