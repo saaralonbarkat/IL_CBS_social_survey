@@ -1,0 +1,6 @@
+"0","lss_comb %>%"
+"0","  group_by(sector) %>% "
+"0","   summarise(n = n(),"
+"0","             mean_trust_gov_bi = mean(trust_gov_bi,na.rm=T) %>% round(3),"
+"0","             weighted_mean_trust_gov_bi = weighted.mean(trust_gov_bi, weight,na.rm=T) %>% round(3)) %>% "
+"0","  gt()"
