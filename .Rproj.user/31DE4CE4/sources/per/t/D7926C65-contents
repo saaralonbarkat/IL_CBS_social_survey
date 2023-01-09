@@ -1,0 +1,22 @@
+total_votes <- 4843023
+
+threshold <- total_votes*0.0325
+
+counted_votes <- 4360800
+
+proportion_counted <- counted_votes/total_votes
+
+left_votes <- total_votes-counted_votes
+
+balad_votes_counted <- 124095
+
+balad_left_to_threshold <- threshold-balad_votes_counted
+
+meretz_votes_counted <- 137219
+
+meretz_left_to_threshold <- threshold-meretz_votes_counted
+
+proportion_needed_balad <- balad_left_to_threshold/left_votes # 0.04350164
+
+proportion_needed_meretz <- meretz_left_to_threshold/left_votes # 0.03508345
+

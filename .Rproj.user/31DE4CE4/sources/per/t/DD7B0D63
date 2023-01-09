@@ -1,0 +1,27 @@
+{
+    "id": "DD7B0D63",
+    "path": "~/R local/data skills course_local/Introduction to R.Rmd",
+    "project_path": null,
+    "type": "r_markdown",
+    "hash": "396286579",
+    "contents": "",
+    "dirty": false,
+    "created": 1667987679659.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "last_setup_crc32": "",
+        "cursorPosition": "12,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1625110448,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1667987694075,
+    "read_only": false,
+    "read_only_alternatives": []
+}

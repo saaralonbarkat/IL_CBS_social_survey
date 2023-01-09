@@ -1,0 +1,113 @@
+#### 
+##A very basic introduction to R
+####
+##Data Skills course 2021
+####
+
+
+# This file is an R script file. 
+# Every line here is a command to R, unless you put # before 
+# To tell R to execute (or "run"), just Click "run" (or Ctrl+Enter). 
+
+# R is a smart calculator. 
+1+1
+4*4
+
+
+# You can create and name "objects" and they will be saved in your "environment". 
+# To create an "object" use the sign "<-"
+my_first_object <- 1
+
+#From now on, when you type "my_first_object" R will read the value of it:
+my_first_object
+
+# Now try this:
+my_first_object + 2
+
+# You can also "override" objects:
+my_first_object <- my_first_object + 2
+
+my_first_object
+
+
+# Almost anything can be an object. 
+# For example, an object can be a single value, or a "vector" (series of values)
+
+my_first_vector <- c(1,2,3,4,5,6,7,8,9,10)
+
+my_second_vector <- c("a","b","c","a","b","c","a","b","c","x")
+
+my_third_vector <- c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,FALSE,TRUE)
+
+#  Another important type of object is a data table, called "data frame". 
+
+my_first_dataframe <- data.frame(my_first_vector,
+                                 my_second_vector,
+                                 my_third_vector)
+
+
+my_first_dataframe
+
+# In a data frame, each column is a "variable" and each row is an "observation".
+
+# There are three main data types: 
+# 1. Numerics (numerics/integers/doubles). (Data represent numeric values)
+# 2. Characters. (Such as text. Data does not represent numeric value)
+# 3. Logicals (TRUE/FALSE)
+
+# Data frames typically consist of different types of variable. 
+
+# R has operators. We will get to know some of them. 
+#== is "equal"
+1+2==2+1
+3+2==2+1
+
+#!= is "not equal"
+3+2!=2+1
+
+
+# R has multiple built-in functions
+round(1.168)
+mean(my_first_vector)
+table(my_second_vector)
+summary(my_first_dataframe)
+
+# But, one of the things that are great in R is that there are 
+# endless extensions that you can download (like apps in your smartphone). 
+# These extensions are called "packages" or "libraries".
+
+# We will work with the very useful set of packages in "tidyverse".
+# In the first time you are using a package you need to download and install it
+# with `install.packages`
+# install.packages("tidyverse")
+
+# Then, you need to open it - and it is ready.
+library(tidyverse)
+
+
+# Tidyverse is a set of packages that provide solutions to all of the stages in 
+# the workflow (import, tidy, transform, visualize, model, communicate).
+# It uses a unified simple, intuitive human language where functions are verbs. 
+
+# For exmaple:
+my_first_dataframe %>% 
+  select(my_first_vector)
+
+my_first_dataframe %>% 
+  filter(my_first_vector>5)
+
+my_first_dataframe %>% 
+  arrange(my_second_vector)
+
+
+# The %>% operator is called "pipe". It is an important element in Tidyverse 
+# and it is extremely useful. 
+# It makes tidyverse code very intuitive and easy to read and understand.
+
+
+# Again, this file is an R script. Scripts are great if you just want R to run
+# a list of commands. But there's another very effective way to work with R, 
+# with RMarkdown files. 
+
+
+

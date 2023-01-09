@@ -1,0 +1,2670 @@
+---
+title: "CBS Social Survey Report"
+subtitle: "Version 08"
+date: last-modified
+author: "Lior Shvarts"
+format:
+  html:
+    self-contained: true
+    code-fold: true
+    toc: true
+    toc-location: left
+execute:
+  message: false
+  warning: false
+---
+
+```{r}
+library(tidyverse)
+library(gt)
+library(gtsummary)
+library(janitor)
+library(sjPlot)
+library(ggcorrplot)
+Sys.setlocale("LC_ALL","Herbrew")
+```
+
+# **The data**
+
+```{r}
+lss_2019_raw<-read_csv("data/H20191424data.csv",na=c(NA,"999999","888888"))
+lss_2020_raw<-read_csv("data/H20201453data.csv",na=c(NA,"999999","888888"))
+lss_2021_raw<-read_csv("data/H20211461data.csv",na=c(NA,"999999","888888"))
+
+lss_total <- bind_rows(lss_2019_raw, lss_2020_raw, lss_2021_raw) %>%
+  janitor::clean_names() %>%
+  mutate(
+    district = recode(
+      machoz,
+      `1` = "jerusalem",
+      `2` = "north",
+      `3` = "haifa",
+      `4` = "center",
+      `5` = "tel_aviv",
+      `6` = "south",
+      `7` = "yosh"
+    ),
+    subdistrict = nafa,
+    residense_type = zurat_yishuv,
+    religion = recode(
+      dat,
+      `1` = "1. jewish",
+      `2` = "2. muslim",
+      `3` = "3. christian",
+      `4` = "4. druze",
+      `5` = "5. other",
+      `6` = "6. no_religion"
+    ),
+    year = recode(
+      shana,
+      `19` = 2019,
+      `20` = 2020,
+      `21` = 2021
+    ),
+    performance_health = recode(
+      tifkud_briut,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_gov = recode(
+      emun_memshala,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_healthcare = recode(
+      emun_briut,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_healthcare_bi = recode(
+      emun_briut,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_health_bi = recode(
+      tifkud_briut,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_gov_bi = recode(
+      emun_memshala,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_education = recode(
+      tifkud_hinuch,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    performance_education_bi = recode(
+      tifkud_hinuch,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_police = recode(
+      emun_mishtara,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_police_bi = recode(
+      emun_mishtara,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_police = recode(
+      tifkud_mishtara,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    performance_police_bi = recode(
+      tifkud_mishtara,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_municipality = recode(
+      tifkud_iriya,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    performance_municipality_bi = recode(
+      tifkud_iriya,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_knesset = recode(
+      emun_kneset,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_knesset_bi = recode(
+      emun_kneset,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_knesset = recode(
+      tifkud_kneset,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    performance_knesset_bi = recode(
+      tifkud_kneset,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_judiciary = recode(
+      emun_mishpat,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_judiciary_bi = recode(
+      emun_mishpat,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_army = recode(
+      emun_tzahal,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_army_bi = recode(
+      emun_tzahal,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_comptroller = recode(
+      emun_mevaker,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_comptroller_bi = recode(
+      emun_mevaker,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_area = recode(
+      merutze_ezor,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_area_bi = recode(
+      merutze_ezor,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_transport = recode(
+      merutze_tachbura,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ) %>% na_if(5),
+    satisfied_transport_bi = recode(
+      merutze_tachbura,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ) %>% na_if(5),
+    satisfied_parks = recode(
+      merutze_ezor_parkim,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_parks_bi = recode(
+      merutze_ezor_parkim,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_clean = recode(
+      merutze_ezor_nikayon,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_clean_bi = recode(
+      merutze_ezor_nikayon,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_trash = recode(
+      merutze_ezor_ashpa,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_trash_bi = recode(
+      merutze_ezor_ashpa,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_roads = recode(
+      merutze_kvishim,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_roads_bi = recode(
+      merutze_kvishim,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    religiosity_level_jews = case_when(
+      datiut_yehudi==1 ~ "1. Haredi",
+      datiut_yehudi==2 ~ "2. Dati",
+      datiut_yehudi==3 ~ "3. Masorty dati",
+      datiut_yehudi==4 ~ "4. Masorty lo col cah dati",
+      datiut_yehudi==5 ~ "5. Hilony",
+      datiut_yehudi %in% NA & pop_group==1 ~ "Other (non Arab)"),
+    feel_safe = recode(
+      margish_batuach,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+      ) %>% na_if(5),
+    feel_safe_bi = recode(
+      margish_batuach,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ) %>% na_if(5),
+    reside_own_apartment = recode(
+      dira_baalut,
+      `1` = 1,
+      `2` = 0
+      ),
+    own_apartment = recode(
+      dira_baalut_c,
+      `1` = 1,
+      `2` = 0
+      ),
+    arab = ifelse(pop_group == 2, 1, 0),
+    ultra_orthodox = ifelse(datiut_yehudi == 1, 1, 0),
+    russian_ole = ifelse(yelid_brham == 1, 1, 0)) %>% 
+  mutate(mizrahi_origin = ifelse(
+      arab == 0 &
+        (
+          semel_eretz %in% c(3, 4) |
+            semel_eretz_av_c %in% c(3, 4) | semel_eretz_em_c %in% c(3, 4)
+        ),
+      1,
+      0
+    ),
+    gender = recode(minn, `1` = "male", `2` = "female"),
+    age = recode(
+      gil,
+      `1` = "20-24",
+      `2` = "25-29",
+      `3` = "30-34",
+      `4` = "34-39",
+      `5` = "40-44",
+      `6` = "45-49",
+      `7` = "50-54",
+      `8` = "55-59",
+      `9` = "60-64",
+      `10` = "65-74",
+      `11` = "75_plus"
+    ),
+    household_income = recode(
+      hachnasa_kolelet_neto,
+      `1` = "1. 0-2500",
+      `2` = "2. 2500-4000",
+      `3` = "3. 4000-5000",
+      `4` = "4. 5000-6500",
+      `5` = "5. 6500-8000",
+      `6` = "6. 8000-10000",
+      `7` = "7. 10000-13000",
+      `8` = "8. 13000-17000",
+      `9` = "9. 17000-24000",
+      `10` = "10. 24000+",
+      `11` = "11. no_income"
+    )) %>% 
+  mutate(
+    sector = case_when(
+      arab == 1 ~ "arab",
+      ultra_orthodox == 1 ~ "ultra_orthodox",
+      TRUE ~ "general"
+    )) %>% 
+  mutate(
+    sector_multiple = case_when(
+      arab == 1 & religion == "3. christian" ~ "Arab Christians",
+      religion == "4. druze" ~ "Arab Druzes",
+      arab == 1 &
+        religion == "2. muslim" & residense_type != 1 ~ "Arab Muslims",
+      arab == 1 &
+        residense_type == 1 ~ "Arab Jerusalem",
+      ultra_orthodox == 1 ~ "Jewish Ultra Orthodox",
+      russian_ole == 1 ~ "Jewish USSR born",
+      mizrahi_origin == 1 &
+        ultra_orthodox == 0 ~ "Jewish Mizrahi Origin",
+      arab == 0 &
+        mizrahi_origin == 0 & ultra_orthodox == 0 ~ "Jewish Ashkenazi",
+      TRUE ~ "Other"
+    )
+  )
+
+
+        
+```
+
+```{r}
+lss_total%>%
+  group_by(year)%>%
+  summarize(n_participants=n())%>%
+  gt()
+```
+
+```{r}
+lss_total%>%
+  select(year,
+         gender,
+         sector,
+         sector_multiple,
+         religion,
+         religiosity_level_jews,
+         age,
+         district,
+         subdistrict,
+         residense_type,
+         household_income,
+         russian_ole,
+         mizrahi_origin,
+         reside_own_apartment,
+         own_apartment,
+         performance_health,
+         performance_health_bi,
+         trust_in_gov,
+         trust_in_gov_bi,
+         performance_health,
+         performance_health_bi,
+         trust_healthcare,
+         trust_healthcare_bi,
+         performance_education,
+         performance_education_bi,
+         trust_in_police,
+         trust_in_police_bi,
+         performance_police,
+         performance_police_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         trust_in_knesset,
+         trust_in_knesset_bi,
+         performance_knesset,
+         performance_knesset_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi,
+         trust_in_army,
+         trust_in_army_bi,
+         trust_in_comptroller,
+         trust_in_comptroller_bi,
+         satisfied_area,
+         satisfied_area_bi,
+         satisfied_transport,
+         satisfied_transport_bi,
+         satisfied_parks,
+         satisfied_parks_bi,
+         satisfied_clean,
+         satisfied_clean_bi,
+         satisfied_trash,
+         satisfied_trash_bi,
+         satisfied_roads,
+         satisfied_roads_bi,
+         feel_safe,
+         feel_safe_bi)%>%
+  glimpse()
+```
+
+```{r}
+lss_total%>%
+  select(year,gender,sector,sector_multiple,religion,religiosity_level_jews,age,district,household_income,own_apartment,own_apartment)%>%
+  tbl_summary()
+```
+
+```{r}
+lss_total%>%
+  select(year,gender,sector,sector_multiple,religion,religiosity_level_jews,age,district,household_income,own_apartment,own_apartment)%>%
+  tbl_summary(by=year)
+```
+
+```{r}
+lss_total%>%
+  select(year,gender,sector,sector_multiple,religion,religiosity_level_jews,age,district,household_income,own_apartment,own_apartment)%>%
+  tbl_summary(by=sector)
+```
+
+```{r}
+lss_total%>%
+  select(year,gender,sector_multiple,religion,religiosity_level_jews,age,district,household_income,own_apartment,own_apartment)%>%
+  tbl_summary(by=sector_multiple)
+```
+
+```{r}
+lss_total%>%
+   select(year,gender,sector_multiple,religion,religiosity_level_jews,age,district,household_income,own_apartment,own_apartment)%>%
+  tbl_summary(by=own_apartment)
+```
+
+```{r}
+lss_total%>%
+     select(year,gender,sector_multiple,religion,religiosity_level_jews,age,district,household_income,own_apartment,own_apartment)%>%
+  tbl_summary(by=own_apartment)
+```
+
+# **Sectors**
+
+Categorization of sectors:
+
+1.  General
+2.  Ultra Orthodox
+3.  Arab
+
+Categorization of sub-sectors:
+
+1.  Arab Christians
+2.  Arab Druze
+3.  Arab Jerusalem (belongs to Arab population and residing in Jerusalem)
+4.  Arab Muslim
+5.  Jewish Ultra-Orthodox (based on self reporting of level of religiousity among Jews)
+6.  Jewish USSR born
+7.  Jewish Mizrahi origin (either born in Asia/Africa or mother/father born in Asia/Africa)
+8.  Jewish Ashkenazi (Jewish, residual category)
+9.  Other (non Jewish residual category)
+
+Categorization of level of religiosity (for Jews):
+
+1. Ultra Orthodox
+2. Religious
+3. Traditionalists (religious)
+4. Traditionalists (not so religious)
+5. Secular (non-religious)
+
+# **Attitudinal/trust variables**
+
+## **1. GOVERNMENT**
+
+**Trust in government:**
+
+original item (EmunMemshala): האם את/ה נותן/נותנת אמון בממשלה? 1- בכלל לא 2- לא כל כך 3- כן, במידה מסוימת 4- כן, במידה רבה
+
+trust_in_gov_bi - high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+## **2. HEALTHCARE SYSTEM**
+
+**Trust in healthcare system:**
+
+original item (EmunBriut): האם את/ה נותן/נותנת אמון במערכת הבריאות? 1- בכלל לא 2- לא כל כך 3- כן, במידה מסוימת 4- כן, במידה רבה
+
+trust_healthcare_bi - high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+**Performance evaluation of healthcare system:**
+
+original item (TifkudBriut): מה דעתך על תפקוד מערכת הבריאות? 1- בכלל לא טוב 2- לא כל כך טוב 3- טוב 4-טוב מאוד
+
+performance_health_bi - good and very good = 1; not so good and not good at all = 0
+
+## **3. EDUCATION SYSTEM**
+
+**Performance evaluation of education system:**
+
+original item (tifkud_hinuch):
+מה דעתך על תפקוד מערכת החינוך? 
+1- בכלל לא טוב
+2- לא כל כך טוב
+3- טוב
+4- טוב מאוד
+
+performance_education_bi - good and very good = 1; not so good and not good at all = 0
+
+## **4. POLICE**
+
+**Performance evaluation of the police:**
+
+original item (tifkud_mishtara):
+מה דעתך על תפקוד משטרת ישראל?
+1- בכלל לא טוב
+2- לא כל כך טוב
+3- טוב
+4- טוב מאוד
+
+performance_police_bi - good and very good = 1; not so good and not good at all = 0
+
+**Trust in the police:**
+
+original item (emun_mishtara):
+האם אתה נותן אמון במשטרת ישראל?
+1- בכלל לא
+2- לא כל כך
+3- כן, במידה מסוימת
+4- כן, במידה רבה
+
+trust_in_police_bi - high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+## **5. MUNICIPALITY**
+
+**Performance evaluation of the municipality:**
+
+original item (tifkud_iriya):
+מה דעתך על תפקוד העירייה/ הרשות המקומית?
+1- בכלל לא טוב
+2- לא כל כך טוב
+3- טוב
+4- טוב מאוד
+
+performance_municipality_bi - good and very good = 1; not so good and not good at all = 0
+
+## **6. KNESSET**
+
+**Trust in the Knesset:**
+
+original item (emun_kneset):
+האם אתה נותן אמון בכנסת?
+1- בכלל לא
+2- לא כל כך
+3- כן, במידה מסוימת
+4- כן, במידה רבה
+
+trust_in_knesset_bi - high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+**Performance evaluation of the Knesset:**
+
+original item (tifkud_kneset):
+מה דעתך על תפקוד הכנסת?
+1- בכלל לא טוב
+2- לא כל כך טוב
+3- טוב
+4- טוב מאוד
+
+performance_knesset_bi - good and very good = 1; not so good and not good at all = 0
+
+## **7. JUDICIARY**
+
+**Trust in the judiciary system:**
+
+original item (emun_mishpat):
+האם אתה נותן אמון במערכת המשפט?
+1- בכלל לא
+2- לא כל כך
+3- כן, במידה מסוימת
+4- כן, במידה רבה
+
+trust_in_judiciary_bi - high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+## **8. ARMY**
+
+**Trust in the army:**
+
+original item (emun_tzahal):
+האם אתה נותן באמון בצה"ל?
+1- בכלל לא
+2- לא כל כך
+3- כן, במידה מסוימת
+4- כן, במידה רבה
+
+trust_in_army_bi - high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+## **9. STATE COMPTROLLER**
+
+**Trust in the state comptroller:**
+
+original item (emun_mevaker):
+האם אתה נותן אמון במבקר המדינה?
+1- בכלל לא
+2- לא כל כך
+3- כן, במידה מסוימת
+4- כן, במידה רבה
+
+trust_in_comptroller_bi - high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+
+## **Local Services:**
+
+### **13. Satisfaction with the place of residence:**
+
+original item (merutze_ezor):
+באופן  כללי, האם אתה מרוצה מהאזור שבו אתה גר?
+1- בכלל לא מרוצה
+2- לא כל כך מרוצה
+3- מרוצה
+4- מרוצה מאוד
+
+satisfied_area_bi - satisfied and very satisfied = 1; not satisfied and not satisfied at all = 0
+
+### **14. Satisfaction with the public transportation in the place of residence:**
+
+original item (merutze_tachbura):
+האם אתה מרוצה מהתחבורה הציבורית באזור מגוריך?
+1- בכלל לא מרוצה
+2- לא כל כך מרוצה
+3- מרוצה
+4- מרוצה מאוד
+5- לא משתמש בתחבורה ציבורית
+
+### **15. Satisfaction with green spaces, public gardens and parks in place of residence:**
+
+original item (merutze_ezor_parkim):
+האם אתה מרוצה מכמות השטחים הירוקים, הגנים הציבוריים או הפארקים באזור בו אתה גר?
+1- בכלל לא מרוצה
+2- לא כל כך מרוצה
+3- מרוצה
+4- מרוצה מאוד
+
+### **16. Satisfaction with the cleanliness of the place of residence:**
+
+original item (merutze_ezor_nikayon):
+האם אתה מרוצה מהניקיון באזור בו אתה גר?
+1- בכלל לא מרוצה
+2- לא כל כך מרוצה
+3- מרוצה
+4- מרוצה מאוד
+
+### **17. Satisfaction with garbage collection in place of residence:**
+
+original item (merutze_ezor_ashpa):
+האם אתה מרוצה משירותי איסוף האשפה באזור מגוריך?
+1- בכלל לא מרוצה
+2- לא כל כך מרוצה
+3- מרוצה
+4- מרוצה מאוד
+
+### **18. Satisfaction with the condition of the roads and sidewalks in place of residence:**
+
+original item (merutze_ezor_kvishim):
+האם אתה מרוצה ממצב הכבישים והמדרכות באזור שבו אתה גר? כגון: רוחב הכבישים והמדרכות, תאורה מספקת, שילוט וכדומה
+1- בכלל לא מרוצה
+2- לא כל כך מרוצה
+3- מרוצה
+4- מרוצה מאוד
+
+### **19. Feeling safe while walking alone in the hours of darkness in the place of residence:**
+
+original item (margish_batuach):
+האם אתה מרגיש בטוח ללכת לבדך בשעות החשיכה באזור בו אתה גר?
+1- בכלל לא בטוח
+2- לא כל כך בטוח
+3- בטוח
+4- בטוח מאוד
+5- לא יוצא מהבית
+
+
+# **Findings**
+
+
+
+## **1. Trust in government:**
+
+```{r}
+t1<-lss_total%>%
+  group_by(trust_in_gov)%>%
+  summarize(n=n())%>%
+mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t1%>%
+  drop_na(trust_in_gov)%>%
+  ggplot(aes(x=factor(trust_in_gov),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in Government",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(trust_in_gov_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in government by year",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_in_gov_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in government by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_gov_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in government by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_gov_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+      facet_grid(cols=vars(mizrahi_origin))+
+  labs(title="% having trust in government by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_in_gov_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in government by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=trust_in_gov,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in government by age group",subtitle="(mean+95CI)",x="age group",y="",caption="2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=trust_in_gov,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in government by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_in_gov_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% having trust in government by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_gov_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% having trust in government by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+## **2. Trust in health system:**
+
+```{r}
+t2<-lss_total%>%
+  filter(year==2019&2020)%>%
+  group_by(trust_healthcare)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t2%>%
+  drop_na(trust_healthcare)%>%
+  ggplot(aes(x=factor(trust_healthcare),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in health system",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(trust_healthcare_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in government by year",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_healthcare_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in health system by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_healthcare_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in health system by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_healthcare_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in health system by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=trust_healthcare_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% trust in health system by age group",subtitle="(mean+95CI)",x="age group",y="",caption="2019-2020")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=trust_healthcare_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in health system by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2020")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_healthcare_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in health system by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_healthcare_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% having trust in health system by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_healthcare_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% having trust in health system by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+## **3. Performance evaluation of healthcare system:**
+
+```{r}
+t3<-lss_total%>%
+  group_by(performance_health)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t3%>%
+  drop_na(performance_health)%>%
+  ggplot(aes(x=factor(performance_health),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Evaluation of health services",x="",y="")
+
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(performance_health_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Positive evaluation of health services by year",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_health_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of health services by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_health_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% positive evaluation of health system by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_health_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of health services by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=performance_health_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of health services by age group",subtitle="(mean+95CI)",x="",y="",caption="evaluation of health services, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=performance_health_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of health services by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_health_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% positive evaluation of health services by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_health_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% positive evaluation of health services by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+## **4. Performance evaluation of education system:**
+
+```{r}
+t4<-lss_total%>%
+  group_by(performance_education)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t4%>%
+  drop_na(performance_education)%>%
+  ggplot(aes(x=factor(performance_education),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Evaluation of education system",x="",y="")
+
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_education_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of education system by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_education_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% positive evaluation of health system by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_education_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of education system by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=performance_education_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of health services by age group",subtitle="(mean+95CI)",x="",y="",caption="evaluation of education system, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=performance_education_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of education system by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_education_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% positive evaluation of education system by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_education_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% positive evaluation of education system by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_education_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% positive evaluation of education system by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+## **5. Trust in the police:**
+
+```{r}
+t5<-lss_total%>%
+  filter(year==2021)%>%
+  group_by(trust_in_police)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t5%>%
+  drop_na(trust_in_police)%>%
+  ggplot(aes(x=factor(trust_in_police),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in the police",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=trust_in_police_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the police by age group",subtitle="(mean+95CI)",x="",y="",caption="trust in the police, normalized (0 to 1), 2021")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=sector,y=trust_in_police_bi,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the police by sector",subtitle="(mean+95CI)",x="",y="",caption="trust in the police, normalized (0 to 1), 2021")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=sector_multiple,y=trust_in_police_bi,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of the police by sub-sector",subtitle="(mean+95CI)",x="",y="",caption="trust in the police, normalized (0 to 1), 2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=trust_in_police_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the police by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  ggplot(aes(x=factor(own_apartment),y=trust_in_police_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% having trust in the police by home ownership",subtitle="(mean+95CI)",x="",y="",caption="2021")
+```
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_police_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% having trust in the police by home ownership",subtitle="(mean+95CI)",x="",y="",caption="2021")
+```
+
+## **6. Performance evaluation of the police:**
+
+```{r}
+t6<-lss_total%>%
+  group_by(performance_police)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t6%>%
+  drop_na(performance_police)%>%
+  ggplot(aes(x=factor(performance_police),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Evaluation of the police",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(performance_police_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Positive evaluation of the police by year",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_police_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the police by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_police_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the police by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_police_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the police by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=performance_police_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of the police by age group",subtitle="(mean+95CI)",x="",y="",caption="evaluation of the police, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=performance_police_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of the police by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_police_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% positive evaluation of the police by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_police_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% positive evaluation of the police by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+## **7. Performance evaluation of the municipality:**
+
+```{r}
+t7<-lss_total%>%
+  group_by(performance_municipality)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t7%>%
+  drop_na(performance_municipality)%>%
+  ggplot(aes(x=factor(performance_municipality),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Evaluation of the municipality",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(performance_municipality_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Positive evaluation of the municipality by year",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_municipality_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the municipality by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_municipality_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the municipality by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_municipality_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the municipality by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=performance_municipality_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of the municipality by age group",subtitle="(mean+95CI)",x="",y="",caption="evaluation of the municipality, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=performance_municipality_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of the municipality by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_municipality_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% positive evaluation of the municipality by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_municipality_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% positive evaluation of the municipality by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+## **8. Trust in the Knesset:**
+
+```{r}
+t8<-lss_total%>%
+  filter(year==2021)%>%
+  group_by(trust_in_knesset)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t8%>%
+  drop_na(trust_in_knesset)%>%
+  ggplot(aes(x=factor(trust_in_knesset),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in the Knesset",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=trust_in_knesset_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the Knesset by age group",subtitle="(mean+95CI)",x="",y="",caption="trust in the Knesset, normalized (0 to 1), 2021")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=sector,y=trust_in_knesset_bi,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the Knesset by sector",subtitle="(mean+95CI)",x="",y="",caption="trust in the Knesset, normalized (0 to 1), 2021")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=sector_multiple,y=trust_in_knesset_bi,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the Knesset by sub-sector",subtitle="(mean+95CI)",x="",y="",caption="trust in the Knesset, normalized (0 to 1), 2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=trust_in_knesset_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the Knesset by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  ggplot(aes(x=factor(own_apartment),y=trust_in_knesset_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% having trust in the Knesset by home ownership",subtitle="(mean+95CI)",x="",y="",caption="2021")
+```
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_knesset_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% having trust in the Knesset by home ownership",subtitle="(mean+95CI)",x="",y="",caption="2021")
+```
+
+## **9. Performance evaluation of the Knesset:**
+
+```{r}
+t9<-lss_total%>%
+  group_by(performance_knesset)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t9%>%
+  drop_na(performance_knesset)%>%
+  ggplot(aes(x=factor(performance_knesset),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Evaluation of the Knesset",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(performance_knesset_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Positive evaluation of the Knesset by year",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_knesset_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the Knesset by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_knesset_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the Knesset by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_knesset_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the Knesset by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=performance_knesset_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of the Knesset by age group",subtitle="(mean+95CI)",x="",y="",caption="trust in the Knesset, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=performance_knesset_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% positive evaluation of the Knesset by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=performance_knesset_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% positive evaluation of the Knesset by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=performance_knesset_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% positive evaluation of the Knesset by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+## **10. Trust in the judiciary system:**
+
+```{r}
+t10<-lss_total%>%
+  group_by(trust_in_judiciary)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t10%>%
+  drop_na(trust_in_judiciary)%>%
+  ggplot(aes(x=factor(trust_in_judiciary),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in the judiciary system",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(trust_in_judiciary_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the judiciary system by year",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_in_judiciary_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in the judiciary system by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_judiciary_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Positive evaluation of the judiciary system by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_in_judiciary_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% having trust in the judiciary system by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=trust_in_judiciary_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the judiciary system by age group",subtitle="(mean+95CI)",x="",y="",caption="trust in the judiciary system, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=trust_in_judiciary_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the judiciary system by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=trust_in_judiciary_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% having trust in the judiciary system by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_judiciary_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% having trust in the judiciary by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+## **11. Trust in the army:**
+
+```{r}
+t11<-lss_total%>%
+  filter(year==2021)%>%
+  group_by(trust_in_army)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t11%>%
+  drop_na(trust_in_army)%>%
+  ggplot(aes(x=factor(trust_in_army),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in the army",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=trust_in_army_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the army by age group",subtitle="(mean+95CI)",x="",y="",caption="trust in the army, normalized (0 to 1), 2021")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=sector,y=trust_in_army_bi,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the army by sector",subtitle="(mean+95CI)",x="",y="",caption="trust in the army, normalized (0 to 1), 2021")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=sector_multiple,y=trust_in_army_bi,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the army by sub-sector",subtitle="(mean+95CI)",x="",y="",caption="trust in the army, normalized (0 to 1), 2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=trust_in_army_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the army by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  ggplot(aes(x=factor(own_apartment),y=trust_in_army_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% having trust in the army by home ownership",subtitle="(mean+95CI)",x="",y="",caption="2021")
+```
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_army_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% having trust in the army by home ownership",subtitle="(mean+95CI)",x="",y="",caption="2021")
+```
+
+## **12. Trust in the state Comptroller:**
+
+```{r}
+t12<-lss_total%>%
+  filter(year==2021)%>%
+  group_by(trust_in_comptroller)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t12%>%
+  drop_na(trust_in_comptroller)%>%
+  ggplot(aes(x=factor(trust_in_comptroller),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in the state comptroller",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=trust_in_comptroller_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the state comptroller by age group",subtitle="(mean+95CI)",x="",y="",caption="trust in the state comptroller, normalized (0 to 1), 2021")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=sector,y=trust_in_comptroller_bi,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the state comptroller by sector",subtitle="(mean+95CI)",x="",y="",caption="trust in the state comptroller, normalized (0 to 1), 2021")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=sector_multiple,y=trust_in_comptroller_bi,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the state comptroller by sub-sector",subtitle="(mean+95CI)",x="",y="",caption="trust in the state comptroller, normalized (0 to 1), 2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=trust_in_comptroller_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% having trust in the state comptroller by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  ggplot(aes(x=factor(own_apartment),y=trust_in_comptroller_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% having trust in the state comptroller by home ownership",subtitle="(mean+95CI)",x="",y="",caption="2021")
+```
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=trust_in_comptroller_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% having trust in the state comptroller by home ownership",subtitle="(mean+95CI)",x="",y="",caption="2021")
+```
+
+## **Findings - local services:**
+
+### **13. Satisfaction with the place of residence:**
+
+```{r}
+t13<-lss_total%>%
+  group_by(satisfied_area)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t13%>%
+  drop_na(satisfied_area)%>%
+  ggplot(aes(x=factor(satisfied_area),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="satisfaction with the place of residence",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(satisfied_area_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the place of residence",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_area_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the place of residence by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=satisfied_area_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the place of residence by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_area_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the place of residence by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=satisfied_area_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the place of residence by age group",subtitle="(mean+95CI)",x="",y="",caption="satisfaction with the place of residence, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=satisfied_area_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the place of residence by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_area_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(sector))+
+  labs(title="% satisfied with the place of residence by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=satisfied_area_bi,color=factor(own_apartment),group=own_apartment))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+        facet_grid(cols=vars(religiosity_level_jews))+
+  labs(title="% satisfied with the place of residence by year and home ownership",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+### **14. Satisfaction with the public transportation in the place of residence:**
+
+```{r}
+t14<-lss_total%>%
+  group_by(satisfied_transport)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t14%>%
+  drop_na(satisfied_transport)%>%
+  ggplot(aes(x=factor(satisfied_transport),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="satisfaction with the public trasportation in the place of residence",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(satisfied_transport_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the public transportation in the place of residence",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_transport_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the public transportation in the place of residence by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=satisfied_transport_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the public transportation by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_transport_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the public transportation in the place of residence by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=satisfied_transport_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the public transportation in the place of residence by age group",subtitle="(mean+95CI)",x="",y="",caption="satisfaction with the transportation in the place of residence, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=satisfied_transport_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the public transportation in the place of residence by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+### **15. Satisfaction with green spaces, public gardens and parks in place of residence:**
+
+```{r}
+t15<-lss_total%>%
+  group_by(satisfied_parks)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t15%>%
+  drop_na(satisfied_parks)%>%
+  ggplot(aes(x=factor(satisfied_parks),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="satisfaction with green spaces, public gardens and parks in the place of residence",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(satisfied_parks_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with green spaces, public gardens and parks in the place of residence",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_parks_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with green spaces, public gardens and parks in the place of residence by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=satisfied_parks_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the green spaces, public gardens and parks in the place of residence by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_parks_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with green spaces, public gardens and parks in the place of residence by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=satisfied_parks_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with green spaces, public gardens and parks in the place of residence by age group",subtitle="(mean+95CI)",x="",y="",caption="satisfaction with green spaces, public gardens and parks in the place of residence, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=satisfied_parks_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with green spaces, public gardens and parks in the place of residence by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+### **16. Satisfaction with the cleanliness of the place of residence:**
+
+```{r}
+t16<-lss_total%>%
+  group_by(satisfied_clean)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t16%>%
+  drop_na(satisfied_clean)%>%
+  ggplot(aes(x=factor(satisfied_clean),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="satisfaction with the cleanliness in the place of residence",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(satisfied_clean_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the cleanliness in the place of residence",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_clean_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the cleanliness in the place of residence by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=satisfied_clean_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the cleanliness in the place of residence by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_clean_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the cleanliness in the place of residence by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=satisfied_clean_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the cleanliness in the place of residence by age group",subtitle="(mean+95CI)",x="",y="",caption="satisfaction with the cleanliness in the place of residence, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=satisfied_clean_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the cleanliness in the place of residence by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+### **17. Satisfaction with garbage collection in place of residence:**
+
+```{r}
+t17<-lss_total%>%
+  group_by(satisfied_trash)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t17%>%
+  drop_na(satisfied_trash)%>%
+  ggplot(aes(x=factor(satisfied_trash),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="satisfaction with the garbage collection in the place of residence",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(satisfied_trash_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the garbage collection in the place of residence",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_trash_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the garbage collection in the place of residence by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=satisfied_trash_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the garbage collection in the place of residence by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_trash_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the garbage collection in the place of residence by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=satisfied_trash_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the garbage collection in the place of residence by age group",subtitle="(mean+95CI)",x="",y="",caption="satisfaction with the garbage collection in the place of residence, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=satisfied_trash_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the garbage collection in the place of residence by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+### **18. Satisfaction with the condition of the roads and sidewalks in place of residence:**
+
+```{r}
+t18<-lss_total%>%
+  group_by(satisfied_roads)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t18%>%
+  drop_na(satisfied_roads)%>%
+  ggplot(aes(x=factor(satisfied_roads),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="satisfaction with the roads and sidewalks in the place of residence",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(satisfied_roads_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the roads and sidewalks in the place of residence",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_roads_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the roads and sidewalks in the place of residence by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=satisfied_roads_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the roads and sidewalks in the place of residence by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=satisfied_roads_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% satisfied with the roads and sidewalks collection in the place of residence by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=satisfied_roads_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the roads and sidewalks collection in the place of residence by age group",subtitle="(mean+95CI)",x="",y="",caption="satisfaction with the roads and sidewalks in the place of residence, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(household_income)%>%
+  ggplot(aes(x=household_income,y=satisfied_roads_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% satisfied with the roads and sidewalks in the place of residence by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+### **19. Feeling safe while walking alone in the hours of darkness in the place of residence:**
+
+```{r}
+t19<-lss_total%>%
+  group_by(feel_safe)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t19%>%
+  drop_na(feel_safe)%>%
+  ggplot(aes(x=factor(feel_safe),y=n))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Feeling safe while walking alone in the hours of darkness in the place of residence",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=(feel_safe_bi)))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Feeling safe while walking alone in the hours of darkness in the place of residence",subtitle="(%+95CI)",x="",y="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=feel_safe_bi,color=sector,group=sector))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Feeling safe while walking alone in the hours of darkness in the place of residence by year and sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  filter(sector %in% c("general","ultra_orthodox"))%>%
+  ggplot(aes(x=factor(year),y=feel_safe_bi,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Feeling safe while walking alone in the hours of darkness in the place of residence by year and level of religiosity (Jews)",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=factor(year),y=feel_safe_bi,color=sector_multiple,group=sector_multiple))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot,alpha=0.5)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="% Feeling safe while walking alone in the hours of darkness in the place of residence by year and sub-sector",subtitle="(mean+95CI)",x="",y="",caption="")
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=age,y=feel_safe_bi,group=age))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Feeling safe while walking alone in the hours of darkness in the place of residence by age group",subtitle="(mean+95CI)",x="",y="",caption="Feeling safe while walking alone in the hours of darkness in the place of residence, normalized (0 to 1), 2019-2021")
+
+lss_total%>%
+  ggplot(aes(x=age,y=feel_safe_bi,color= gender))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Feeling safe while walking alone in the hours of darkness in the place of residence by age group",subtitle="(mean+95CI)",x="",y="",caption="Feeling safe while walking alone in the hours of darkness in the place of residence, normalized (0 to 1), 2019-2021")
+```
+
+```{r}
+lss_total%>%
+  drop_na(feel_safe)%>%
+  ggplot(aes(x=household_income,y=feel_safe_bi,group=household_income))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Feeling safe while walking alone in the hours of darkness in the place of residence by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+
+lss_total%>%
+  drop_na(feel_safe)%>%
+  ggplot(aes(x=household_income,y=feel_safe_bi,color=gender))+
+  stat_summary(geom="pointrange",fun.data=mean_cl_boot)+
+  labs(title="% Feeling safe while walking alone in the hours of darkness in the place of residence by household income",subtitle="(mean+95CI)",x="household income",y="",caption="2019-2021")+
+  coord_flip()
+```
+
+# **Summary tables**
+
+```{r}
+lss_total%>%
+  select(trust_in_gov,
+         trust_in_gov_bi,
+         trust_healthcare,
+         trust_healthcare_bi,
+         performance_health,
+         performance_health_bi,
+         performance_education,
+         performance_education_bi,
+         trust_in_police,
+         trust_in_police_bi,
+         performance_police,
+         performance_police_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         trust_in_knesset,
+         trust_in_knesset_bi,
+         performance_knesset,
+         performance_knesset_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi,
+         trust_in_army,
+         trust_in_army_bi,
+         trust_in_comptroller,
+         trust_in_comptroller_bi)%>%
+  tbl_summary()
+```
+
+```{r}
+lss_total%>%
+  select(year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_healthcare,
+         trust_healthcare_bi,
+         performance_health,
+         performance_health_bi,
+         performance_education,
+         performance_education_bi,
+         trust_in_police,
+         trust_in_police_bi,
+         performance_police,
+         performance_police_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         trust_in_knesset,
+         trust_in_knesset_bi,
+         performance_knesset,
+         performance_knesset_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi,
+         trust_in_army,
+         trust_in_army_bi,
+         trust_in_comptroller,
+         trust_in_comptroller_bi)%>%
+  tbl_summary(by=year)
+```
+
+```{r}
+lss_total%>%
+  select(sector,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_healthcare,
+         trust_healthcare_bi,
+         performance_health,
+         performance_health_bi,
+         performance_education,
+         performance_education_bi,
+         trust_in_police,
+         trust_in_police_bi,
+         performance_police,
+         performance_police_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         trust_in_knesset,
+         trust_in_knesset_bi,
+         performance_knesset,
+         performance_knesset_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi,
+         trust_in_army,
+         trust_in_army_bi,
+         trust_in_comptroller,
+         trust_in_comptroller_bi)%>%
+  tbl_summary(by=sector)
+
+```
+
+```{r}
+lss_total%>%
+  select(age,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_healthcare,
+         trust_healthcare_bi,
+         performance_health,
+         performance_health_bi,
+         performance_education,
+         performance_education_bi,
+         trust_in_police,
+         trust_in_police_bi,
+         performance_police,
+         performance_police_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         trust_in_knesset,
+         trust_in_knesset_bi,
+         performance_knesset,
+         performance_knesset_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi,
+         trust_in_army,
+         trust_in_army_bi,
+         trust_in_comptroller,
+         trust_in_comptroller_bi)%>%
+  tbl_summary(by=age)
+```
+
+```{r}
+lss_total%>%
+  select(sector_multiple,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_healthcare,
+         trust_healthcare_bi,
+         performance_health,
+         performance_health_bi,
+         performance_education,
+         performance_education_bi,
+         trust_in_police,
+         trust_in_police_bi,
+         performance_police,
+         performance_police_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         trust_in_knesset,
+         trust_in_knesset_bi,
+         performance_knesset,
+         performance_knesset_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi,
+         trust_in_army,
+         trust_in_army_bi,
+         trust_in_comptroller,
+         trust_in_comptroller_bi)%>%
+  tbl_summary(by=sector_multiple)
+```
+
+```{r}
+lss_total%>%
+  select(religiosity_level_jews,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_healthcare,
+         trust_healthcare_bi,
+         performance_health,
+         performance_health_bi,
+         performance_education,
+         performance_education_bi,
+         trust_in_police,
+         trust_in_police_bi,
+         performance_police,
+         performance_police_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         trust_in_knesset,
+         trust_in_knesset_bi,
+         performance_knesset,
+         performance_knesset_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi,
+         trust_in_army,
+         trust_in_army_bi,
+         trust_in_comptroller,
+         trust_in_comptroller_bi)%>%
+  tbl_summary(by=religiosity_level_jews)
+
+```
+
+```{r}
+lss_total%>%
+  select(household_income,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_healthcare,
+         trust_healthcare_bi,
+         performance_health,
+         performance_health_bi,
+         performance_education,
+         performance_education_bi,
+         trust_in_police,
+         trust_in_police_bi,
+         performance_police,
+         performance_police_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         trust_in_knesset,
+         trust_in_knesset_bi,
+         performance_knesset,
+         performance_knesset_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi,
+         trust_in_army,
+         trust_in_army_bi,
+         trust_in_comptroller,
+         trust_in_comptroller_bi)%>%
+  tbl_summary(by=household_income)
+```
+
+## **Summary tables - local services:**
+
+```{r}
+lss_total%>%
+  select(trust_in_gov,
+         trust_in_gov_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         satisfied_area,
+         satisfied_area_bi,
+         satisfied_transport,
+         satisfied_transport_bi,
+         satisfied_parks,
+         satisfied_parks_bi,
+         satisfied_clean,
+         satisfied_clean_bi,
+         satisfied_trash,
+         satisfied_trash_bi,
+         satisfied_roads,
+         satisfied_roads_bi,
+         feel_safe,
+         feel_safe_bi)%>%
+  tbl_summary()
+```
+
+```{r}
+lss_total%>%
+  select(year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         satisfied_area,
+         satisfied_area_bi,
+         satisfied_transport,
+         satisfied_transport_bi,
+         satisfied_parks,
+         satisfied_parks_bi,
+         satisfied_clean,
+         satisfied_clean_bi,
+         satisfied_trash,
+         satisfied_trash_bi,
+         satisfied_roads,
+         satisfied_roads_bi,
+         feel_safe,
+         feel_safe_bi)%>%
+  tbl_summary(by=year)
+```
+
+```{r}
+lss_total%>%
+  select(sector,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         satisfied_area,
+         satisfied_area_bi,
+         satisfied_transport,
+         satisfied_transport_bi,
+         satisfied_parks,
+         satisfied_parks_bi,
+         satisfied_clean,
+         satisfied_clean_bi,
+         satisfied_trash,
+         satisfied_trash_bi,
+         satisfied_roads,
+         satisfied_roads_bi,
+         feel_safe,
+         feel_safe_bi)%>%
+  tbl_summary(by=sector)
+```
+
+```{r}
+lss_total%>%
+  select(age,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         satisfied_area,
+         satisfied_area_bi,
+         satisfied_transport,
+         satisfied_transport_bi,
+         satisfied_parks,
+         satisfied_parks_bi,
+         satisfied_clean,
+         satisfied_clean_bi,
+         satisfied_trash,
+         satisfied_trash_bi,
+         satisfied_roads,
+         satisfied_roads_bi,
+         feel_safe,
+         feel_safe_bi)%>%
+  tbl_summary(by=age)
+```
+
+```{r}
+lss_total%>%
+  select(sector_multiple,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         satisfied_area,
+         satisfied_area_bi,
+         satisfied_transport,
+         satisfied_transport_bi,
+         satisfied_parks,
+         satisfied_parks_bi,
+         satisfied_clean,
+         satisfied_clean_bi,
+         satisfied_trash,
+         satisfied_trash_bi,
+         satisfied_roads,
+         satisfied_roads_bi,
+         feel_safe,
+         feel_safe_bi)%>%
+  tbl_summary(by=sector_multiple)
+```
+
+```{r}
+lss_total%>%
+  select(religiosity_level_jews,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         satisfied_area,
+         satisfied_area_bi,
+         satisfied_transport,
+         satisfied_transport_bi,
+         satisfied_parks,
+         satisfied_parks_bi,
+         satisfied_clean,
+         satisfied_clean_bi,
+         satisfied_trash,
+         satisfied_trash_bi,
+         satisfied_roads,
+         satisfied_roads_bi,
+         feel_safe,
+         feel_safe_bi)%>%
+  tbl_summary(by=religiosity_level_jews)
+```
+
+```{r}
+lss_total%>%
+  select(household_income,
+         year,
+         trust_in_gov,
+         trust_in_gov_bi,
+         performance_municipality,
+         performance_municipality_bi,
+         satisfied_area,
+         satisfied_area_bi,
+         satisfied_transport,
+         satisfied_transport_bi,
+         satisfied_parks,
+         satisfied_parks_bi,
+         satisfied_clean,
+         satisfied_clean_bi,
+         satisfied_trash,
+         satisfied_trash_bi,
+         satisfied_roads,
+         satisfied_roads_bi,
+         feel_safe,
+         feel_safe_bi)%>%
+  tbl_summary(by=household_income)
+```
+
+# **Correlation Matrix**
+
+## Correlation matrix for variables collected in 2019-2021:
+
+*Note:* The variable "trust_healthcare" only has data for the years 2019-2020.
+
+```{r}
+lss_total%>%
+  select(trust_in_gov,
+         trust_healthcare,
+         performance_health,
+         performance_education,
+         performance_police,
+         performance_municipality,
+         performance_knesset,
+         trust_in_judiciary,
+         satisfied_area,
+         satisfied_transport,
+         satisfied_parks,
+         satisfied_clean,
+         satisfied_roads,
+         feel_safe)%>%
+  sjPlot::tab_corr(triangle="lower",corr.method="spearman",na.deletion="pairwise")
+```
+
+## Correlation matrix for variables collected only in 2021:
+
+```{r}
+lss_total%>%
+  filter(year==2021)%>%
+  select(trust_in_gov,
+         performance_health,
+         performance_education,
+         performance_police,
+         performance_municipality,
+         performance_knesset,
+         trust_in_judiciary,
+         trust_in_knesset,
+         trust_in_army,
+         trust_in_police,
+         trust_in_comptroller,
+         satisfied_area,
+         satisfied_transport,
+         satisfied_parks,
+         satisfied_clean,
+         satisfied_roads,
+         feel_safe)%>%
+    sjPlot::tab_corr(triangle="lower",corr.method="spearman",na.deletion="pairwise")
+```
+
+## A correlation heatmap for variables collected in 2021:
+
+```{r}
+lss_total%>%
+  select(trust_in_gov,
+         performance_health,
+         performance_education,
+         trust_in_police,
+         performance_police,
+         trust_in_knesset,
+         performance_knesset,
+         trust_in_judiciary,
+         trust_in_army,
+         trust_in_comptroller,
+         performance_municipality,
+         satisfied_area,
+         satisfied_transport,
+         satisfied_parks,
+         satisfied_clean,
+         satisfied_trash,
+         satisfied_roads,
+         feel_safe)%>%
+  cor(use = "pairwise.complete.obs") %>%
+  ggcorrplot::ggcorrplot(lab=T,lab_size = 1.5,type="lower",tl.cex = 5)
+```
+
+

@@ -12,16 +12,14 @@ format:
 execute:
   message: false
   warning: false
-  cache: false
+  cache: true
 ---
-
 
 ```{r setup, include=FALSE}
 
 Sys.setlocale("LC_ALL", "Hebrew") 
 
 ```
-
 
 ```{r}
 library(sjmisc)
@@ -34,40 +32,28 @@ library(gtsummary)
 
 <br>
 
-
-
-This report summarizes first results from Israel CBS social surveys in years 2015-2020, focused on trust in government and trust in healthcare system. 
-
+This report summarizes first results from Israel CBS social surveys in years 2015-2020, focused on trust in government and trust in healthcare system.
 
 **This is a preliminary report, reflecting work in progress. Please contact author before citing.**
 
-
 Raw data obtained from the Israel CBS website: https://www.cbs.gov.il/he/subjects/Pages/%D7%94%D7%A1%D7%A7%D7%A8-%D7%94%D7%97%D7%91%D7%A8%D7%AA%D7%99.aspx
 
-The data is analyzed and used in accordance with PUF license. 
+The data is analyzed and used in accordance with PUF license.
 
 Information on the social survey available online at the Israel CBS website.
 
-
 R code available at GitHub: https://github.com/saaralonbarkat/IL_CBS_social_survey
 
-
-Statistical note: analyses represent weighted data, unless states otherwise.   
-
-
+Statistical note: analyses represent weighted data, unless states otherwise.
 
 <br>
 
-
-
 # The data
-
 
 ```{r}
 load("~/GitHub/IL_CBS_social_survey/.RData")
 #lss_comb <- read_csv("~/GitHub/IL_CBS_social_survey/data/lss_comb.csv")
 ```
-
 
 Main dataset - `lss_comb`: CBS/lamas social surveys (5 surveys 2015-2020, total population of 43,628). Participants are citizens selected for survey by Lamas. Surveys conducted face to face in homes.
 
@@ -78,16 +64,14 @@ lss_comb %>%
   gt()
 ```
 
-
-
 ```{r}
 lss_comb %>% 
   glimpse()
 ```
 
-
-
 ```{r}
+
+
 lss_comb %>% 
   select(year,
         female,
@@ -134,43 +118,35 @@ lss_comb %>%
   tbl_summary(by = sector_multiple)
 ```
 
-
 <br>
 
 ## Sectors
 
-
 Categorization of sectors:
 
+-   Arab christian
 
-* Arab christian
+-   Arab Druz
 
-* Arab Druz
+-   Arab Jerusalem (belongs to Arab population and residing in Jerusalem)
 
-* Arab Jerusalem (belongs to Arab population and residing in Jerusalem)
+-   Arab Muslim
 
-* Arab Muslim
+-   Jewish Ultra-orthodox (based on self reporting of level of religiousity among Jews)
 
-* Jewish Ultra-orthodox (based on self reporting of level of religiousity among Jews)
+-   Jewish USSR born
 
-* Jewish USSR born
+-   Jewish Mizrahi origin (either born in Asia/Africa or mother/father born in Asia/Africa)
 
-* Jewish Mizrahi origin (either born in Asia/Africa or mother/father born in Asia/Africa)
+-   Jewish Ashkenazi (Jewish, residual category)
 
-* Jewish Ashkenazi (Jewish, residual category)
-
-* Other (non Jewish residual category)
-
+-   Other (non Jewish residual category)
 
 (see R code)
 
+## Attitudinal/trust variables:
 
-
-
-## Attitudinal/trust variables: 
-
-
-**Trust in Government **
+**Trust in Government**
 
 original item (`EmunMemshala`):
 
@@ -184,18 +160,13 @@ original item (`EmunMemshala`):
 
 4 - בכלל לא
 
-
-`trust_gov_bi` - 
-High trust or trust to some degree = 1
-No trust at all or not so much= 0
-
-
+`trust_gov_bi` - High trust or trust to some degree = 1 No trust at all or not so much= 0
 
 <br>
 
-**Trust in healthcare system **
+**Trust in healthcare system**
 
-original item  (`EmunBriut`):
+original item (`EmunBriut`):
 
 האם את/ה נותן/נותנת אמון במערכת הבריאות?
 
@@ -207,20 +178,15 @@ original item  (`EmunBriut`):
 
 4 - בכלל לא
 
-
-`trust_trust_health_bi` - 
-High trust or trust to some degree = 1
-No trust at all or not so much= 0
-
+`trust_trust_health_bi` - High trust or trust to some degree = 1 No trust at all or not so much= 0
 
 <br>
-
 
 **Performance evaluation of healthcare system**
 
 original item (`TifkudBriut`):
 
-מה דעתך על תפקוד מערכת הבריאות?  
+מה דעתך על תפקוד מערכת הבריאות?
 
 1 - טוב מאוד
 
@@ -230,21 +196,16 @@ original item (`TifkudBriut`):
 
 4 - בכלל לא טוב
 
-
-`performance_health_bi` - 
-Good or very good = 1
-Not so good or not good at all = 0
-
-
+`performance_health_bi` - Good or very good = 1 Not so good or not good at all = 0
 
 # Findings
 
-
 ## Trust in government
 
-
-
 ```{r}
+
+
+
 t1 <- lss_comb %>%
   group_by(trust_gov_raw) %>%
   summarise(n=n()) %>%
@@ -263,6 +224,9 @@ t1 %>%
 ```
 
 ```{r}
+
+
+
 lss_comb %>% 
   ggplot(aes(x=year, y=(trust_gov_bi)))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -274,6 +238,9 @@ lss_comb %>%
 ```
 
 ```{r}
+
+
+
 lss_comb %>% 
   ggplot(aes(x=age_g, y=trust_gov_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -298,8 +265,9 @@ lss_comb %>%
   coord_flip()
 ```
 
-
 ```{r}
+
+
 lss_comb %>% 
   ggplot(aes(x=sector, y=trust_gov_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -310,12 +278,13 @@ lss_comb %>%
        caption = "Trust in government normalized (0 to 1)")+
   theme_tufte()
 ```
-<br>
 
+<br>
 
 <br>
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=year, y=trust_gov_bi,color = sector))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
@@ -331,6 +300,7 @@ stat_summary(geom="line", fun.data = mean_cl_boot,alpha=0.5) +
 <br>
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=sector_multiple, y=trust_gov_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -347,6 +317,7 @@ lss_comb %>%
 <br>
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=year, y=trust_gov_bi,color = sector_multiple))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
@@ -361,11 +332,7 @@ stat_summary(geom="line", fun.data = mean_cl_boot,alpha=0.5) +
 
 <br>
 
-
-Weighted means: 
-
-
-
+Weighted means:
 
 ```{r}
 lss_comb %>%
@@ -383,12 +350,10 @@ lss_comb %>%
   gt()
 ```
 
-
 ## Trust in Health system
 
-
-
 ```{r}
+
 t1 <- lss_comb %>%
   group_by(trust_health_raw) %>%
   summarise(n=n()) %>%
@@ -406,8 +371,8 @@ t1 %>%
   theme_tufte()
 ```
 
-
 ```{r}
+
 
 
 lss_comb %>% 
@@ -421,6 +386,7 @@ lss_comb %>%
 ```
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=age_g, y=trust_health_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -432,6 +398,7 @@ lss_comb %>%
 ```
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=sector, y=trust_health_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -442,8 +409,8 @@ lss_comb %>%
   theme_tufte()
 ```
 
-
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=year, y=trust_health_bi,color = sector))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
@@ -458,8 +425,8 @@ stat_summary(geom="line", fun.data = mean_cl_boot,alpha=0.5) +
 
 <br>
 
-
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=sector_multiple, y=trust_health_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -472,10 +439,11 @@ lss_comb %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   coord_flip()
 ```
+
 <br>
 
-
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=year, y=trust_health_bi,color = sector_multiple))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
@@ -492,6 +460,7 @@ lss_comb %>%
 <br>
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=trust_gov, y=trust_health_bi,color = sector))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
@@ -507,13 +476,10 @@ lss_comb %>%
 
 <br>
 
-
-
-
-
 <br>
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=household_income, y=(trust_health_bi)))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -526,18 +492,12 @@ lss_comb %>%
   coord_flip()
 ```
 
-
-
-
 <br>
 
-
-Weighted means: 
-
-
-
+Weighted means:
 
 ```{r}
+
 lss_comb %>%
   group_by(sector) %>% 
    summarise(n = n(),
@@ -553,14 +513,10 @@ lss_comb %>%
   gt()
 ```
 
-
-
-
 ## Performance evaluation of healthcare system
 
-
-
 ```{r}
+
 t1 <- lss_comb %>%
   group_by(performance_health_raw) %>%
   summarise(n=n()) %>%
@@ -578,8 +534,8 @@ t1 %>%
   theme_tufte()
 ```
 
-
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=factor(year), y=performance_health_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -591,6 +547,7 @@ lss_comb %>%
 ```
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=age_g, y=performance_health_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -614,8 +571,8 @@ lss_comb %>%
   theme_tufte()
 ```
 
-
 ```{r}
+
 lss_comb %>% 
   filter(year>=2018) %>% 
   ggplot(aes(x=factor(year), y=performance_health_bi,color = sector))+
@@ -631,8 +588,8 @@ stat_summary(geom="line", fun.data = mean_cl_boot,alpha=0.5) +
 
 <br>
 
-
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=sector_multiple, y=performance_health_bi))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -645,10 +602,11 @@ lss_comb %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   coord_flip()
 ```
+
 <br>
 
-
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=year, y=performance_health_bi,color = sector_multiple))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
@@ -665,6 +623,7 @@ lss_comb %>%
 <br>
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=trust_gov, y=performance_health_bi,color = sector))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
@@ -681,6 +640,7 @@ lss_comb %>%
 <br>
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=trust_health, y=performance_health_bi,color = sector))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
@@ -694,11 +654,10 @@ lss_comb %>%
   theme_tufte()
 ```
 
-
-
 <br>
 
 ```{r}
+
 lss_comb %>% 
   ggplot(aes(x=household_income, y=(performance_health_bi)))+
   stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
@@ -711,16 +670,9 @@ lss_comb %>%
   coord_flip()
 ```
 
-
-
-
 <br>
 
-
-Weighted means: 
-
-
-
+Weighted means:
 
 ```{r}
 lss_comb %>%
@@ -738,10 +690,184 @@ lss_comb %>%
   gt()
 ```
 
+## Performance evaluation of healthcare system
 
+```{r}
+
+t1 <- lss_comb %>%
+  group_by(performance_health_raw) %>%
+  summarise(n=n()) %>%
+  mutate(freq = (n / sum(n)) %>% round(3)) %>%
+  mutate(freq.lab = str_c(100*freq,"%"))
+
+t1 %>%
+  drop_na(performance_health_raw) %>%
+  ggplot(aes(x=factor(performance_health_raw),y=n))+
+  geom_col(width = 0.75, alpha=0.8, fill = "dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust = 1.5,size=3)+
+  labs(title = "Evaluation of health services",
+       x = "",
+       y="")+
+  theme_tufte()
+```
+
+```{r}
+
+lss_comb %>% 
+  ggplot(aes(x=factor(year), y=performance_health_bi))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
+  labs(title = "% Positive evaluation of health services by year",
+       subtitle = "(Mean + 95CI)",
+       x = "",
+       y="")+
+  theme_tufte()
+```
+
+```{r}
+
+lss_comb %>% 
+  ggplot(aes(x=age_g, y=performance_health_bi))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
+  labs(title = "% Positive evaluation of health services by year",
+       subtitle = "(Mean + 95CI)",
+       x = "",
+       y="",
+       caption = "Trust in Health normalized (0 to 1)")+
+  theme_tufte()
+```
+
+```{r}
+lss_comb %>% 
+  ggplot(aes(x=sector, y=performance_health_bi))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
+  labs(title = "% Positive evaluation of health services by sector",
+       subtitle = "(Mean + 95CI)",
+       x = "",
+       y="",
+       caption = "Trust in Health normalized (0 to 1)")+
+  theme_tufte()
+```
+
+```{r}
+
+lss_comb %>% 
+  filter(year>=2018) %>% 
+  ggplot(aes(x=factor(year), y=performance_health_bi,color = sector))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
+stat_summary(geom="line", fun.data = mean_cl_boot,alpha=0.5) +
+  labs(title = "% Positive evaluation of health services by year and sector",
+       subtitle = "(Mean + 95CI)",
+       x = "",
+       y="",
+       caption = "")+
+  theme_tufte()
+```
+
+<br>
+
+```{r}
+
+lss_comb %>% 
+  ggplot(aes(x=sector_multiple, y=performance_health_bi))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
+  labs(title = "% Positive evaluation of health services by sector",
+       subtitle = "(Mean + 95CI)",
+       x = "",
+       y="",
+       caption = "")+
+  theme_tufte() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  coord_flip()
+```
+
+<br>
+
+```{r}
+
+lss_comb %>% 
+  ggplot(aes(x=year, y=performance_health_bi,color = sector_multiple))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
+  stat_summary(geom="line", fun.data = mean_cl_boot,alpha=0.5) +
+
+  labs(title = "% Positive evaluation of health services by sector and year",
+       subtitle = "(Mean + 95CI)",
+       x = "",
+       y="",
+       caption = "")+
+  theme_tufte()
+```
+
+<br>
+
+```{r}
+
+lss_comb %>% 
+  ggplot(aes(x=trust_gov, y=performance_health_bi,color = sector))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
+  stat_summary(geom="line", fun.data = mean_cl_boot,alpha=0.5) +
+
+  labs(title = "% Positive evaluation of health services by trust in government and sector",
+       subtitle = "(Mean + 95CI)",
+       x = "Trust in government (1=high trust)",
+       y="",
+       caption = "")+
+  theme_tufte()
+```
+
+<br>
+
+```{r}
+
+lss_comb %>% 
+  ggplot(aes(x=trust_health, y=performance_health_bi,color = sector))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot,alpha=0.5) +
+  stat_summary(geom="line", fun.data = mean_cl_boot,alpha=0.5) +
+
+  labs(title = "% Positive evaluation of health services by trust in health system",
+       subtitle = "(Mean + 95CI)",
+       x = "Trust in health system (1=high trust)",
+       y="",
+       caption = "")+
+  theme_tufte()
+```
+
+<br>
+
+```{r}
+
+lss_comb %>% 
+  ggplot(aes(x=household_income, y=(performance_health_bi)))+
+  stat_summary(geom="pointrange", fun.data = mean_cl_boot) +
+  labs(title = "% having trust in Health by income",
+       subtitle = "(% + 95CI)",
+       x = "",
+       y="")+
+  theme_tufte()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  coord_flip()
+```
+
+<br>
+
+Weighted means:
+
+```{r}
+lss_comb %>%
+  group_by(sector) %>% 
+   summarise(n = n(),
+             mean_trust_health_bi = mean(trust_health_bi,na.rm=T) %>% round(3),
+             weighted_mean_trust_health_bi = weighted.mean(trust_health_bi, weight,na.rm=T) %>% round(3)) %>% 
+  gt()
+
+lss_comb %>%
+  group_by(sector_multiple) %>% 
+   summarise(n = n(),
+             mean_trust_health_bi = mean(trust_health_bi,na.rm=T) %>% round(3),
+             weighted_mean_trust_health_bi = weighted.mean(trust_health_bi, weight,na.rm=T) %>% round(3)) %>% 
+  gt()
+```
 
 # Summary tables
-
 
 ```{r}
 lss_comb %>% 
@@ -794,4 +920,3 @@ lss_comb %>%
         trust_local_gov_raw) %>% 
   tbl_summary(by = sector_multiple)
 ```
-
