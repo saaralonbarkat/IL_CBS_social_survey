@@ -1,0 +1,1002 @@
+---
+title: "CBS Social Survey Report"
+subtitle: "Version 08"
+date: last-modified
+author: "Lior Shvarts"
+format:
+  html:
+    self-contained: true
+    code-fold: true
+    toc: true
+    toc-location: left
+execute:
+  message: false
+  warning: false
+---
+
+```{r}
+library(tidyverse)
+library(gt)
+library(gtsummary)
+library(janitor)
+library(sjPlot)
+library(ggcorrplot)
+Sys.setlocale("LC_ALL","Herbrew")
+```
+
+# **The data**
+
+```{r}
+lss_2015_raw<-read_csv("data/H20151311data.csv",na=c(NA,"999999","888888"))
+lss_2016_raw<-read_csv("data/H20161342data.csv",na=c(NA,"999999","888888"))
+lss_2017_raw<-read_csv("data/H20171353data.csv",na=c(NA,"999999","888888"))
+lss_2018_raw<-read_csv("data/H20181362data.csv",na=c(NA,"999999","888888"))
+lss_2019_raw<-read_csv("data/H20191424data.csv",na=c(NA,"999999","888888"))
+lss_2020_raw<-read_csv("data/H20201453data.csv",na=c(NA,"999999","888888"))
+lss_2021_raw<-read_csv("data/H20211461data.csv",na=c(NA,"999999","888888"))
+```
+
+
+```{r}
+
+lss_total <- bind_rows(lss_2015_raw, 
+                       lss_2016_raw, 
+                       lss_2017_raw,
+                       lss_2018_raw,
+                       lss_2019_raw, 
+                       lss_2020_raw, 
+                       lss_2021_raw) %>%
+  janitor::clean_names() %>%
+  mutate(
+    district = recode(
+      machoz,
+      `1` = "jerusalem",
+      `2` = "north",
+      `3` = "haifa",
+      `4` = "center",
+      `5` = "tel_aviv",
+      `6` = "south",
+      `7` = "yosh"
+    ),
+    subdistrict = nafa,
+    residense_type = zurat_yishuv,
+    religion = recode(
+      dat,
+      `1` = "1. jewish",
+      `2` = "2. muslim",
+      `3` = "3. christian",
+      `4` = "4. druze",
+      `5` = "5. other",
+      `6` = "6. no_religion"
+    ),
+    year = recode(
+      shana,
+      `15` = 2015,
+      `16` = 2016,
+      `17` = 2017,
+      `18` = 2018,
+      `19` = 2019,
+      `20` = 2020,
+      `21` = 2021
+    ) %>% replace_na(2016),
+    performance_health = recode(
+      tifkud_briut,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_gov = recode(
+      emun_memshala,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_healthcare = recode(
+      emun_briut,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_healthcare_bi = recode(
+      emun_briut,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_health_bi = recode(
+      tifkud_briut,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_gov_bi = recode(
+      emun_memshala,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_education = recode(
+      tifkud_hinuch,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    performance_education_bi = recode(
+      tifkud_hinuch,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_police = recode(
+      emun_mishtara,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_police_bi = recode(
+      emun_mishtara,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_police = recode(
+      tifkud_mishtara,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    performance_police_bi = recode(
+      tifkud_mishtara,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_municipality = recode(
+      tifkud_iriya,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    performance_municipality_bi = recode(
+      tifkud_iriya,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_knesset = recode(
+      emun_kneset,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_knesset_bi = recode(
+      emun_kneset,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    performance_knesset = recode(
+      tifkud_kneset,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    performance_knesset_bi = recode(
+      tifkud_kneset,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_judiciary = recode(
+      emun_mishpat,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_judiciary_bi = recode(
+      emun_mishpat,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_army = recode(
+      emun_tzahal,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_army_bi = recode(
+      emun_tzahal,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    trust_in_comptroller = recode(
+      emun_mevaker,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    trust_in_comptroller_bi = recode(
+      emun_mevaker,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_area = recode(
+      merutze_ezor,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_area_bi = recode(
+      merutze_ezor,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_transport = recode(
+      merutze_tachbura,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_transport_bi = recode(
+      merutze_tachbura,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_parks = recode(
+      merutze_ezor_parkim,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_parks_bi = recode(
+      merutze_ezor_parkim,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_clean = recode(
+      merutze_ezor_nikayon,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_clean_bi = recode(
+      merutze_ezor_nikayon,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_trash = recode(
+      merutze_ezor_ashpa,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_trash_bi = recode(
+      merutze_ezor_ashpa,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    satisfied_roads = recode(
+      merutze_kvishim,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+    ),
+    satisfied_roads_bi = recode(
+      merutze_kvishim,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ),
+    religiosity_level_jews = case_when(
+      datiut_yehudi==1 ~ "1. Haredi",
+      datiut_yehudi==2 ~ "2. Dati",
+      datiut_yehudi==3 ~ "3. Masorty dati",
+      datiut_yehudi==4 ~ "4. Masorty lo col cah dati",
+      datiut_yehudi==5 ~ "5. Hilony",
+      datiut_yehudi %in% NA & pop_group==1 ~ "Other (non Arab)"),
+    feel_safe = recode(
+      margish_batuach,
+      `1` = 4,
+      `2` = 3,
+      `3` = 2,
+      `4` = 1
+      ) %>% na_if(5),
+    feel_safe_bi = recode(
+      margish_batuach,
+      `1` = 1,
+      `2` = 1,
+      `3` = 0,
+      `4` = 0
+    ) %>% na_if(5),
+    reside_own_apartment = recode(
+      dira_baalut,
+      `1` = 1,
+      `2` = 0
+      ),
+    own_apartment = recode(
+      dira_baalut_c,
+      `1` = 1,
+      `2` = 0
+      ),
+    arab = ifelse(pop_group == 2, 1, 0),
+    ultra_orthodox = ifelse(datiut_yehudi == 1, 1, 0),
+    russian_ole = ifelse(yelid_brham == 1, 1, 0)) %>% 
+  mutate(mizrahi_origin = ifelse(
+      arab == 0 &
+        (
+          semel_eretz %in% c(3, 4) |
+            semel_eretz_av_c %in% c(3, 4) | semel_eretz_em_c %in% c(3, 4)
+        ),
+      1,
+      0
+    ),
+    gender = recode(minn, `1` = "male", `2` = "female"),
+    age = recode(
+      gil,
+      `1` = "20-24",
+      `2` = "25-29",
+      `3` = "30-34",
+      `4` = "34-39",
+      `5` = "40-44",
+      `6` = "45-49",
+      `7` = "50-54",
+      `8` = "55-59",
+      `9` = "60-64",
+      `10` = "65-74",
+      `11` = "75_plus"
+    ),
+    household_income = recode(
+      hachnasa_kolelet_neto,
+      `1` = "1. 0-2500",
+      `2` = "2. 2500-4000",
+      `3` = "3. 4000-5000",
+      `4` = "4. 5000-6500",
+      `5` = "5. 6500-8000",
+      `6` = "6. 8000-10000",
+      `7` = "7. 10000-13000",
+      `8` = "8. 13000-17000",
+      `9` = "9. 17000-24000",
+      `10` = "10. 24000+",
+      `11` = "11. no_income"
+    )) %>% 
+  mutate(
+    sector = case_when(
+      arab == 1 ~ "arab",
+      ultra_orthodox == 1 ~ "ultra_orthodox",
+      TRUE ~ "general"
+    )) 
+```
+
+```{r}
+lss_total%>%
+  group_by(year)%>%
+  summarize(n_participants=n())%>%
+  gt()
+```
+
+```{r}
+lss_total%>%
+  select(year,
+         gender,
+         sector,
+         religion,
+         religiosity_level_jews,
+         age,
+         district,
+         subdistrict,
+         household_income,
+         russian_ole,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi)%>%
+  glimpse()
+```
+
+```{r}
+lss_total%>%
+  select(year,
+         gender,
+         sector,
+         religion,
+         religiosity_level_jews,
+         age,
+         district,
+         subdistrict,
+         household_income,
+         russian_ole,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi)%>%  tbl_summary()
+```
+
+```{r}
+lss_total%>%
+  select(year,
+         gender,
+         sector,
+         religion,
+         religiosity_level_jews,
+         age,
+         district,
+         subdistrict,
+         household_income,
+         russian_ole,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi)%>%
+  tbl_summary(by=year)
+```
+
+```{r}
+lss_total%>%
+  select(year,
+         gender,
+         sector,
+         religion,
+         religiosity_level_jews,
+         age,
+         district,
+         subdistrict,
+         household_income,
+         russian_ole,
+         trust_in_gov,
+         trust_in_gov_bi,
+         trust_in_judiciary,
+         trust_in_judiciary_bi)%>%
+  tbl_summary(by=sector)
+```
+
+
+# **Attitudinal/trust variables**
+
+**Trust in government:**
+
+original item (EmunMemshala):
+האם את/ה נותן/נותנת אמון בממשלה? 1- בכלל לא 2- לא כל כך 3- כן, במידה מסוימת 4- כן, במידה רבה
+
+trust_in_gov_bi - 
+high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+
+**Trust in the judiciary system:**
+
+original item (emun_mishpat):
+האם אתה נותן אמון במערכת המשפט?
+1- בכלל לא
+2- לא כל כך
+3- כן, במידה מסוימת
+4- כן, במידה רבה
+
+trust_in_judiciary_bi - high trust and trust to some degree = 1; not trust at all and not so much = 0
+
+
+# **Findings**
+
+
+
+## **Trust in government:**
+
+```{r}
+
+t1<-lss_total%>%
+  group_by(trust_in_gov)%>%
+  summarize(n=n())%>%
+mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t1%>%
+  drop_na(trust_in_gov)%>%
+  ggplot(aes(x=factor(trust_in_gov),y=freq*100))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  scale_x_discrete(breaks=c("1","2","3","4"),
+        labels=c("בכלל לא", 
+                 "לא כל כך", 
+                 "במידה מסויימת",
+                 "במידה רבה"))+
+  labs(title="?האם את/ה נותן/ת אמון בממשלה",
+       subtitle = "2015-2021, משולב",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21")+  
+    scale_y_continuous(
+    labels = scales::percent_format(scale = 1)
+  )+
+  scale_color_viridis_d()+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )
+```
+
+
+
+
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=year,y=(trust_in_gov_bi*100)))+
+  stat_summary(geom="point",fun.data=mean_cl_boot)+
+    stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="נותנים אמון בממשלה %",
+       subtitle = "",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21\n
+       +-טווח הטעות התקנית לסך האוכלוסייה נאמד בכ1.2%")+
+  geom_hline(yintercept = 50,linetype="dashed",color="gray80")+
+    scale_y_continuous(
+    labels = scales::percent_format(scale = 1),
+    breaks = c(25, 50,75)
+  )+
+    scale_x_continuous(
+    breaks = 2015:2021
+  )+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )+
+  coord_cartesian(ylim=c(15,80))
+```
+
+```{r}
+lss_total%>%
+  ggplot(aes(x=year,y=trust_in_gov_bi*100,color=sector))+
+  stat_summary(geom="point",fun.data=mean_cl_boot)+
+  stat_summary(geom="line",fun.data=mean_cl_boot)+
+  stat_summary(aes(group=1,shape="סהכ"),geom="point",fun.data=mean_cl_boot,size=2)+
+  stat_summary(aes(group=1,shape="סהכ"),geom="line",fun.data=mean_cl_boot,size=1)+
+  labs(title="נותנים אמון בממשלה %",
+       subtitle = "",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21\n
+       +-טווח הטעות התקנית לסך האוכלוסייה נאמד בכ1.2%")+
+  scale_color_viridis_d(labels=c('ערבים',
+                                 'חרדים',
+                                 'יהודים לא חרדים'))+
+  geom_hline(yintercept = 50,linetype="dashed",color="gray80")+
+    scale_y_continuous(
+    labels = scales::percent_format(scale = 1),
+    breaks = c(25, 50,75)
+  )+
+    scale_x_continuous(
+    breaks = 2015:2021
+  )+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )+
+  coord_cartesian(ylim=c(15,80))
+```
+
+
+
+
+```{r}
+lss_total%>%
+  filter(datiut_yehudi<=5)%>%
+  ggplot(aes(x=factor(year),y=trust_in_gov_bi*100,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="point",fun.data=mean_cl_boot,size=2)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,size=0.5)+
+  stat_summary(aes(group=1,shape="סהכ יהודים"),geom="point",fun.data=mean_cl_boot,size=2)+
+  stat_summary(aes(group=1,shape="סהכ יהודים"),geom="line",fun.data=mean_cl_boot,size=1)+
+  labs(title="נותנים אמון בממשלה %",
+       subtitle = "אוכלוסייה יהודית",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21\n
+       +-טווח הטעות התקנית לאוכלוסייה היהודית סהכ נאמד בכ1.4%")+
+  scale_color_viridis_d(labels=c('חרדים',
+                                 'דתיים',
+                                 'מסורתיים דתיים',
+                                 'מסורתים לא דתיים',
+                                 'חילונים'))+
+  geom_hline(yintercept = 50,linetype="dashed",color="gray80")+
+  scale_y_continuous(
+    labels = scales::percent_format(scale = 1),
+    breaks = c(25, 50,75)
+  )+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )+
+  coord_cartesian(ylim=c(15,80))
+```
+
+
+## **Trust in the judiciary system:**
+
+```{r}
+t1<-lss_total%>%
+  group_by(trust_in_judiciary)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+
+t1%>%
+  drop_na(trust_in_judiciary)%>%
+  ggplot(aes(x=factor(trust_in_judiciary),y=freq*100))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=3)+
+  scale_x_discrete(breaks=c("1","2","3","4"),
+        labels=c("בכלל לא", 
+                 "לא כל כך", 
+                 "במידה מסויימת",
+                 "במידה רבה"))+
+  labs(title="?האם את/ה נותן/ת אמון במערכת המשפט",
+       subtitle = "2015-2021, משולב",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21")+  
+    scale_y_continuous(
+    labels = scales::percent_format(scale = 1)
+  )+
+  scale_color_viridis_d()+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )
+```
+
+```{r}
+t10<-lss_total%>%
+  group_by(year,trust_in_judiciary)%>%
+  summarize(n=n())%>%
+  mutate(freq=(n/sum(n))%>%round(3))%>%
+  mutate(freq.lab=str_c(100*freq,"%"))
+
+t10%>%
+  drop_na(trust_in_judiciary)%>%
+  ggplot(aes(x=factor(trust_in_judiciary),y=n))+
+  geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=freq.lab),colour="white",vjust=1.5,size=2)+
+  scale_x_discrete(breaks=c("1","2","3","4"),
+        labels=c("בכלל לא", 
+                 "", 
+                 "",
+                 "במידה רבה"))+
+  labs(title="?האם את/ה נותן/ת אמון במערכת המשפט",
+       subtitle = "",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21")+ 
+  facet_wrap(vars(year))+
+  scale_color_viridis_d()+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )
+
+```
+
+
+```{r}
+
+lss_total%>%
+  ggplot(aes(x=year,y=(trust_in_judiciary_bi*100)))+
+  stat_summary(geom="point",fun.data=mean_cl_boot)+
+    stat_summary(geom="line",fun.data=mean_cl_boot,alpha=0.5)+
+  labs(title="נותנים אמון במערכת המשפט %",
+       subtitle = "",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21\n
+       +-טווח הטעות התקנית לסך האוכלוסייה נאמד בכ1.2%")+
+  geom_hline(yintercept = 50,linetype="dashed",color="gray80")+
+    scale_y_continuous(
+    labels = scales::percent_format(scale = 1),
+    breaks = c(25, 50,75)
+  )+
+    scale_x_continuous(
+    breaks = 2015:2021
+  )+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )+
+  coord_cartesian(ylim=c(15,80))
+```
+
+
+```{r}
+
+lss_total%>%
+  ggplot(aes(x=year,y=trust_in_judiciary_bi*100,color=sector))+
+  stat_summary(geom="point",fun.data=mean_cl_boot)+
+  stat_summary(geom="line",fun.data=mean_cl_boot)+
+  stat_summary(aes(group=1,shape="סהכ"),geom="point",fun.data=mean_cl_boot,size=2)+
+  stat_summary(aes(group=1,shape="סהכ"),geom="line",fun.data=mean_cl_boot,size=1)+
+  labs(title="נותנים אמון במערכת המשפט %",
+       subtitle = "",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21\n
+       +-טווח הטעות התקנית לסך האוכלוסייה נאמד בכ1.2%")+
+  scale_color_viridis_d(labels=c('ערבים',
+                                 'יהודים לא חרדים',
+                                 'חרדים'))+
+  geom_hline(yintercept = 50,linetype="dashed",color="gray80")+
+    scale_y_continuous(
+    labels = scales::percent_format(scale = 1),
+    breaks = c(25, 50,75)
+  )+
+    scale_x_continuous(
+    breaks = 2015:2021
+  )+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )+
+  coord_cartesian(ylim=c(15,80))
+```
+
+```{r}
+
+t1 <- lss_total
+
+t1$religiosity_level_jews <- factor(t1$religiosity_level_jews, 
+                                    levels = c("5. Hilony",
+                                               "4. Masorty lo col cah dati",
+                                               "3. Masorty dati",
+                                               "2. Dati",
+                                               "1. Haredi"))
+
+t1%>%
+  filter(datiut_yehudi<=5)%>%
+  ggplot(aes(x=factor(year),y=trust_in_judiciary_bi*100,color=religiosity_level_jews,group=religiosity_level_jews))+
+  stat_summary(geom="point",fun.data=mean_cl_boot,size=2)+
+  stat_summary(geom="line",fun.data=mean_cl_boot,size=0.5)+
+  stat_summary(aes(group=1,shape="סהכ יהודים"),geom="point",fun.data=mean_cl_boot,size=2)+
+  stat_summary(aes(group=1,shape="סהכ יהודים"),geom="line",fun.data=mean_cl_boot,size=1)+
+  labs(title="נותנים אמון במערכת המשפט %",
+       subtitle = "אוכלוסייה יהודית",
+       x="",
+       y="",
+       color="",
+       shape="",
+       caption = "מקור: למס, הסקר החברתי, 2015-21\n
+       +-טווח הטעות התקנית לאוכלוסייה היהודית סהכ נאמד בכ1.4%")+
+  scale_color_viridis_d(labels=c('חילונים',
+                                 'מסורתים לא דתיים',
+                                 'מסורתיים דתיים',
+                                 'דתיים',
+                                 'חרדים'))+
+  geom_hline(yintercept = 50,linetype="dashed",color="gray80")+
+  scale_y_continuous(
+    labels = scales::percent_format(scale = 1),
+    breaks = c(25, 50,75)
+  )+
+  theme_classic()+
+  theme(plot.title = element_text(hjust = 1,face="bold"),
+  plot.subtitle = element_text(hjust = 1),
+  plot.caption = element_text(hjust = 1,color = "gray50",size=7),
+  axis.text = element_text(face="bold")
+  )+
+  coord_cartesian(ylim=c(15,80))
+
+```
+
+
+
+
+
+## Weighted analyses
+
+
+### Trust in Government
+
+
+weighted (with `srvyr`)
+```{r}
+library(srvyr)
+
+lss_total_srvyr <- lss_total %>% as_survey_design(weights = nn)
+
+```
+
+```{r}
+
+t1 <- lss_total_srvyr %>%
+  group_by(trust_in_gov)%>%
+  summarize(n=n(),
+            proportion_weighted = survey_mean(),
+            total_weighted = survey_total())%>%
+mutate(freq_unweighted=(n/sum(n)))%>%
+  mutate(proportion_weighted.lab=str_c(round(100*proportion_weighted,1),"%"))
+
+t1
+
+t1%>%
+  drop_na(trust_in_gov)%>%
+  ggplot(aes(x=factor(trust_in_gov),y=proportion_weighted))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=proportion_weighted.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in Government",subtitle = "Weighted proportions",x="",y="")+
+  scale_color_viridis_d()+
+  theme_classic()
+```
+
+
+```{r}
+t1 <- lss_total_srvyr %>%
+  drop_na(trust_in_gov_bi) %>% 
+  group_by(year)%>%
+  summarize(mean_trust_weighted = survey_mean(trust_in_gov_bi, vartype = "ci"),
+            mean_trust_unweighted = mean(trust_in_gov_bi)) %>% 
+  mutate(ci=mean_trust_weighted-mean_trust_weighted_low)
+
+t1
+
+t1%>%
+  ggplot(aes(x=factor(year),y=(mean_trust_weighted),ymax = mean_trust_weighted_upp, ymin = mean_trust_weighted_low))+
+  geom_point()+
+  geom_pointrange()+
+  labs(title="% having trust in government by year",subtitle="(%+95CI - weighted)",x="",y="")+
+  scale_color_viridis_d()+
+  geom_hline(yintercept = 0.5,linetype="dashed",color="gray80")+
+  theme_classic()
+
+```
+
+
+
+```{r}
+t1 <- lss_total_srvyr %>%
+  drop_na(trust_in_gov_bi) %>%
+    filter(datiut_yehudi<=5)%>%
+  group_by(year,religiosity_level_jews)%>%
+  summarize(mean_trust_weighted = survey_mean(trust_in_gov_bi, vartype = "ci"),
+            mean_trust_unweighted = mean(trust_in_gov_bi))
+
+t1
+
+t1%>%
+  ggplot(aes(x=factor(year),y=(mean_trust_weighted),ymax = mean_trust_weighted_upp, ymin = mean_trust_weighted_low,color=religiosity_level_jews))+
+  geom_point()+
+  geom_pointrange()+
+  geom_line(aes(group=religiosity_level_jews))+
+  labs(title="% having trust in government by year",subtitle="(%+95CI - weighted)",x="",y="")+
+  scale_color_viridis_d()+
+  geom_hline(yintercept = 0.5,linetype="dashed",color="gray80")+
+  theme_classic()
+
+```
+
+
+### Trust in Judicary
+
+
+```{r}
+
+t1 <- lss_total_srvyr %>%
+  group_by(trust_in_judiciary)%>%
+  summarize(n=n(),
+            proportion_weighted = survey_mean(),
+            total_weighted = survey_total())%>%
+mutate(freq_unweighted=(n/sum(n)))%>%
+  mutate(proportion_weighted.lab=str_c(round(100*proportion_weighted,1),"%"))
+
+t1
+
+t1%>%
+  drop_na(trust_in_judiciary)%>%
+  ggplot(aes(x=factor(trust_in_judiciary),y=proportion_weighted))+geom_col(width=0.75,alpha=0.8,fill="dodgerblue2")+
+  geom_text(aes(label=proportion_weighted.lab),colour="white",vjust=1.5,size=3)+
+  labs(title="Trust in Judicary system",subtitle = "Weighted proportions",x="",y="")+
+  theme_classic()
+```
+
+
+
+```{r}
+t1 <- lss_total_srvyr %>%
+  drop_na(trust_in_judiciary_bi) %>% 
+  group_by(year,sector)%>%
+  summarize(mean_trust_weighted = survey_mean(trust_in_judiciary_bi, vartype = "ci"),
+            mean_trust_unweighted = mean(trust_in_judiciary_bi)) %>% 
+  mutate(mean_trust_weighted-mean_trust_weighted_low)
+
+t1
+
+```
+
+
+```{r}
+t1 <- lss_total_srvyr %>%
+  drop_na(trust_in_judiciary_bi) %>% 
+  group_by(year)%>%
+  summarize(mean_trust_weighted = survey_mean(trust_in_judiciary_bi, vartype = "ci"),
+            mean_trust_unweighted = mean(trust_in_judiciary_bi))
+
+t1
+
+t1%>%
+  ggplot(aes(x=factor(year),y=(mean_trust_weighted),ymax = mean_trust_weighted_upp, ymin = mean_trust_weighted_low))+
+  geom_point()+
+  geom_pointrange()+
+  geom_line()+
+  labs(title="% having trust in judicary by year",subtitle="(%+95CI - weighted)",x="",y="")+
+  scale_color_viridis_d()+
+  geom_hline(yintercept = 0.5,linetype="dashed",color="gray80")+
+  theme_classic()
+
+```
+
